@@ -1,0 +1,245 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Carousel</title>
+    <style>
+        .slider {
+            display: flex;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            width: 100%;
+        }
+        .slider img {
+            width: 300px;
+            height: 200px;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="main">
+        <div id="slider" class="slider"></div>
+    </div>
+    <script>
+        const slider = document.getElementById("slider");
+        fetch("https://jsonplaceholder.typicode.com/photos?_limit=30")
+            .then((response) => {
+                return response.json();
+            })
+            .then((jsondata) => {
+                jsondata.forEach((val) =>{
+                    let img = document.createElement("img")
+                    img.src = `https://source.unsplash.com/random/300x200?sig=${val.id}`;
+                    slider.appendChild(img);
+                })
+            });
+    </script>
+</body>
+</html> -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Carousel</title>
+    <style>
+        body{
+            background: black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .main {
+            overflow: hidden;
+            width: 68%;
+            padding: 50px;
+            background-color: white;
+            position: relative;
+        }
+
+        .slider {
+            display: flex;
+            flex-wrap: nowrap;
+            width: 100%;
+            transition: transform 0.3s ease; 
+        }
+
+        .slider img {
+            width: 300px;
+            height: 200px;
+            margin-right: 10px;
+        }
+
+        .btn-container {
+            margin-top: 10px;
+        }
+
+        .btn-container button {
+            margin-right: 10px;
+        }
+        #prevBtn, #nextBtn{
+            position: relative;
+            bottom: 120px;
+            border: none;
+            background-color: red;
+            color: white;
+            height: 40px;
+            width: 80px;
+            font-size: 20px;
+            right: 50px;
+        }
+        #nextBtn{
+            float: right;
+            position: relative;
+            bottom: 120px;
+            left: 60px;
+        }
+        .dots-container {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+        }
+        .dot {
+            width: 10px;
+            height: 10px;
+            background-color: gray;
+            border-radius: 50%;
+            margin: 0 5px;
+            cursor: pointer;
+        }
+        .dot.active {
+            background-color: black;
+        }
+    </style>
+</head>
+<body>
+    <div class="main">
+        <div id="slider" class="slider"></div>
+        <div class="btn-container">
+            <button id="prevBtn">Prev</button>
+            <button id="nextBtn">Next</button>
+        </div>
+        <div class="dots-container" id="dotsContainer"></div>
+        <button id="pauseButton">Pause Slideshow</button>
+        <button id="resumeButton">Resume Slideshow</button>
+        <input type="range" id="speedSlider" min="1000" max="10000" step="1000" value="5000">
+        <span>Slideshow Speed</span>
+    </div>
+    <script>
+        const slider = document.getElementById("slider");
+        const prevBtn = document.getElementById("prevBtn");
+        const nextBtn = document.getElementById("nextBtn");
+        const dotsContainer = document.getElementById("dotsContainer");
+        let currentIndex = 0;
+
+        fetch("https://jsonplaceholder.typicode.com/photos?_limit=10")
+            .then((response) => {
+                return response.json();
+            })
+            .then((jsondata) => {
+                jsondata.forEach((val, index) => {
+                    let img = document.createElement("img");
+                    img.src = `https://source.unsplash.com/random/300x200?sig=${val.id}`;
+                    slider.appendChild(img);
+
+                    // Create a dot for each image
+                    let dot = document.createElement("div");
+                    dot.classList.add("dot");
+                    dot.addEventListener("click", () => {
+                        currentIndex = index;
+                        updateSlider();
+                        updateDots();
+                    });
+                    dotsContainer.appendChild(dot);
+                });
+
+                // Set the initial active dot
+                dotsContainer.children[currentIndex].classList.add("active");
+            });
+
+        prevBtn.addEventListener("click", () => {
+            currentIndex = Math.max(currentIndex - 1, 0);
+            updateSlider();
+            updateDots();
+        });
+
+        nextBtn.addEventListener("click", () => {
+            currentIndex = Math.min(currentIndex + 1, slider.children.length - 1);
+            updateSlider();
+            updateDots();
+        });
+
+        function updateSlider() {
+            slider.style.transform = `translateX(-${currentIndex * 320}px)`;
+        }
+
+        function updateDots() {
+            Array.from(dotsContainer.children).forEach((dot, index) => {
+                dot.classList.remove("active");
+                if (index === currentIndex) {
+                    dot.classList.add("active");
+                }
+            });
+        }
+        let slideshowInterval;
+let isPaused = false;
+let slideshowSpeed = 5000;
+let currentSlideIndex = 0;
+
+const slides = document.querySelectorAll('#slideshow-container img');
+
+const startSlideshow = () => {
+    if (!isPaused) {
+        slideshowInterval = setInterval(() => {
+            showNextSlide();
+        }, slideshowSpeed);
+    }
+};
+
+const pauseSlideshow = () => {
+    clearInterval(slideshowInterval);
+    isPaused = true;
+};
+
+const resumeSlideshow = () => {
+    if (isPaused) {
+        startSlideshow();
+        isPaused = false;
+    }
+};
+
+const adjustSlideshowSpeed = (newSpeed) => {
+    slideshowSpeed = newSpeed;
+    clearInterval(slideshowInterval);
+    startSlideshow();
+};
+
+const showNextSlide = () => {
+    slides[currentSlideIndex].style.display = 'none';
+    currentSlideIndex = (currentSlideIndex + 1) % slides.length;
+    slides[currentSlideIndex].style.display = 'block';
+};
+
+document.getElementById('pauseButton').addEventListener('click', () => {
+    pauseSlideshow();
+});
+
+document.getElementById('resumeButton').addEventListener('click', () => {
+    resumeSlideshow();
+});
+
+document.getElementById('speedSlider').addEventListener('input', () => {
+    const newSpeed = parseInt(document.getElementById('speedSlider').value);
+    adjustSlideshowSpeed(newSpeed);
+});
+
+startSlideshow();
+
+    </script>
+</body>
+</html>
+
